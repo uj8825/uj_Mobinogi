@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobinogi Web Sync</title>
+    <style>
+        :root {
+            --bg-color: #F4F1FA;
+            --surface-card: #FFFFFF;
+            --accent-gold: #8C6FD8;
+            --accent-teal: #5B3FA8;
+            --accent-violet: #8C6FD8;
+            --accent-violet-alpha: rgba(183, 156, 239, 0.3);
+            --danger: #D64545;
+            --warning: #E0A526;
+            --text-primary: #2A2438;
+            --text-secondary: #867C9C;
+            --divider: #E4DEF5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        header {
+            background: linear-gradient(to bottom, var(--surface-card), var(--bg-color));
+            padding: 18px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 10px 18px;
+            background-color: var(--surface-card);
+            border: none;
+            color: var(--text-secondary);
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .tab-btn.active {
+            background-color: var(--accent-teal);
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        main {
+            padding: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card {
+            background-color: var(--surface-card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .server-tag {
+            background-color: var(--accent-violet-alpha);
+            color: var(--accent-teal);
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        .char-name {
+            font-size: 18px;
+            font-weight: bold;
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .delete-btn:hover { color: var(--danger); }
+
+        .resource-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .resource-box {
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            padding: 10px 12px;
+            flex: 1;
+            min-width: 280px;
+        }
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .resource-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .progress-bg {
+            background-color: var(--divider);
+            border-radius: 3px;
+            height: 6px;
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .controls-group {
+            display: flex;
+            gap: 4px;
+        }
+        .mini-btn {
+            background-color: var(--surface-card);
+            border: none;
+            border-radius: 50%;
+            color: var(--text-primary);
+            font-size: 14px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        .mini-btn:hover { background-color: var(--divider); }
+        .time-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-teal);
+        }
+
+        .homework-table-wrapper {
+            background-color: var(--surface-card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .homework-top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .homework-section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-teal);
+            margin: 16px 0 8px 0;
+            border-bottom: 2px solid var(--divider);
+            padding-bottom: 4px;
+        }
+        .manage-settings-btn {
+            background-color: var(--accent-teal);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .homework-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .homework-table th, .homework-table td {
+            border: 1px solid var(--divider);
+            padding: 10px;
+            font-size: 14px;
+        }
+        .homework-table th {
+            background-color: var(--bg-color);
+            color: var(--text-secondary);
+        }
+        .homework-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #FAF8FC;
+            width: 180px;
+        }
+        .homework-table input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-teal);
+            cursor: pointer;
+        }
+        .homework-count-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .homework-count-control button {
+            background: var(--surface-card);
+            border: 1px solid var(--divider);
+            color: var(--text-primary);
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-teal);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal {
+            background: var(--surface-card);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal h3 { margin: 0 0 16px 0; font-size: 18px; color: var(--text-primary); }
+        .modal input, .modal select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--divider);
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .modal-body-scroll {
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-bottom: 16px;
+            padding-right: 4px;
+        }
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-teal);
+            margin: 12px 0 6px 0;
+            background: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .settings-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            font-size: 14px;
+            word-break: keep-all;
+        }
+        .settings-checkbox-item input[type="checkbox"] {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-teal);
+            cursor: pointer;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-cancel { background-color: transparent; color: var(--text-secondary); }
+        .btn-save { background-color: var(--accent-teal); color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="setTab('SERVER')">서버별</button>
+            <button class="tab-btn" onclick="setTab('SILVER')">은동전 순</button>
+            <button class="tab-btn" onclick="setTab('TRIBUTE')">공물 순</button>
+            <button class="tab-btn" onclick="setTab('HOMEWORK')">숙제 현황</button>
+        </div>
+    </header>
+
+    <main id="app-content">
+        <p style="text-align:center; color: var(--text-secondary); margin-top: 40px;">데이터를 불러오는 중입니다...</p>
+    </main>
+
+    <button class="fab" onclick="openAddModal()">＋</button>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3 id="modal-title">새 캐릭터 생성</h3>
+            <input type="hidden" id="char-id">
+            <label style="font-size: 13px; color: var(--text-secondary);">캐릭터 명칭</label>
+            <input type="text" id="char-name" placeholder="이름 입력">
+            
+            <label style="font-size: 13px; color: var(--text-secondary);">서버 선택</label>
+            <select id="char-server">
+                <option value="라사">라사</option>
+                <option value="칼릭스">칼릭스</option>
+                <option value="메이븐">메이븐</option>
+                <option value="데이안">데이안</option>
+                <option value="아이라">아이라</option>
+                <option value="던컨">던컨</option>
+                <option value="알리사">알리사</option>
+                <option value="몰리">몰리</option>
+            </select>
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">취소</button>
+                <button class="btn-save" onclick="saveCharacter()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="homework-settings-modal">
+        <div class="modal">
+            <h3>숙제 목록 관리</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-top:0;">표에 표시할 숙제 항목을 체크하세요.</p>
+            <div class="modal-body-scroll" id="settings-checkbox-container">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeHomeworkSettingsModal()">취소</button>
+                <button class="btn-save" onclick="saveHomeworkSettings()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQB95-hOAXn2EJijshJhzG0xiN0pbJyhQ",
+            authDomain: "mobinogi-b921e.firebaseapp.com",
+            projectId: "mobinogi-b921e",
+            storageBucket: "mobinogi-b921e.firebasestorage.app",
+            messagingSenderId: "471994853119",
+            appId: "1:471994853119:web:1417c5aacac17024470eca"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const docRef = db.collection("users").doc("default_user");
+
+        let characterList = [];
+        let serverWeeklyData = {};
+        let serverDailyData = {};
+        let lastDailyResetTime = 0;
+        let lastWeeklyResetTime = 0;
+
+        // 세분화된 그룹 단위 데이터 구조 정의
+        const masterHomeworkGroups = {
+            serverWeekly: { type: 'serverWeekly', label: '서버별 주간 공유 숙제', items: ['길드 상점'] },
+            serverDaily: { type: 'serverDaily', label: '서버별 일간 공유 숙제', items: ['이벤트 교환', '캐시샵 무료교환'] },
+            daily: { type: 'daily', label: '일간 숙제', items: ['요일 던전'] },
+            weekly_combat_abyss: { type: 'weekly', label: '주간 숙제 (전투 - 어비스)', items: ['허상의 정박지', '광기의 동굴', '흩어진 물길'] },
+            weekly_combat_raid: { type: 'weekly', label: '주간 숙제 (전투 - 레이드)', items: ['글라스기브넨', '화이트 서큐버스', '타바르타스', '에이렐', '카브락'] },
+            weekly_combat_field: { type: 'weekly', label: '주간 숙제 (전투 - 필드보스)', items: ['앙그라바한'] },
+            weekly_life_barter: { type: 'weekly', label: '주간 숙제 (생활 - 물물교환)', items: ['물물교환(티르코네일)', '물물교환(반호르)', '물물교환(이멘마하)'] },
+            weekly_life_other: { type: 'weekly', label: '주간 숙제 (생활 - 기타)', items: ['멤버십 알바', '생활 알바', '퀘스트 스크롤'] },
+            count: { type: 'count', label: '누적 카운트 (주간)', items: ['불길한 소환의 결계', '뱅가드 브릿지', '검은 구멍'] }
+        };
+
+        // 초기 설정: 모든 그룹 내 항목 활성화
+        let activeHomeworkConfig = {};
+        for (const key in masterHomeworkGroups) {
+            activeHomeworkConfig[key] = [...masterHomeworkGroups[key].items];
+        }
+
+        let currentTab = 'SERVER';
+        const isTestMode = false;
+        const silverInterval = isTestMode ? 30000 : 1800000;
+        const tributeInterval = isTestMode ? 30000 : 43200000;
+        let isSaving = false;
+
+        function getMostRecentMonday6AM() {
+            const now = new Date();
+            const day = now.getDay();
+            let daysToSubtract = (day === 0) ? 6 : day - 1; 
+            const resetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0, 0);
+            resetDate.setDate(resetDate.getDate() - daysToSubtract);
+            if (now.getTime() < resetDate.getTime()) {
+                resetDate.setDate(resetDate.getDate() - 7);
+            }
+            return resetDate.getTime();
+        }
+
+        function checkAndExecuteResets() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+            const d = now.getDate();
+            
+            // 일간 초기화 (매일 오전 6시)
+            let dailyResetTime = new Date(y, m, d, 6, 0, 0).getTime();
+            if (now.getTime() < dailyResetTime) {
+                dailyResetTime -= 24 * 60 * 60 * 1000;
+            }
+
+            // 주간 초기화 (매주 월요일 오전 6시)
+            let weeklyResetTime = getMostRecentMonday6AM();
+
+            let isUpdated = false;
+
+            if (lastDailyResetTime < dailyResetTime) {
+                characterList.forEach(char => {
+                    if (char.homework && char.homework.daily) {
+                        for (const key in char.homework.daily) char.homework.daily[key] = false;
+                    }
+                });
+                for (const srv in serverDailyData) {
+                    for (const key in serverDailyData[srv]) serverDailyData[srv][key] = false;
+                }
+                lastDailyResetTime = dailyResetTime;
+                isUpdated = true;
+            }
+
+            if (lastWeeklyResetTime < weeklyResetTime) {
+                characterList.forEach(char => {
+                    if (char.homework && char.homework.weekly) {
+                        for (const key in char.homework.weekly) char.homework.weekly[key] = false;
+                    }
+                    if (char.homework && char.homework.count) {
+                        for (const key in char.homework.count) char.homework.count[key] = 0;
+                    }
+                });
+                for (const srv in serverWeeklyData) {
+                    for (const key in serverWeeklyData[srv]) serverWeeklyData[srv][key] = false;
+                }
+                lastWeeklyResetTime = weeklyResetTime;
+                isUpdated = true;
+            }
+
+            if (isUpdated) updateFirestore();
+        }
+
+        docRef.onSnapshot((docSnap) => {
+            if (isSaving) return;
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                if (data.character_data) {
+                    try {
+                        characterList = JSON.parse(data.character_data);
+                        characterList.forEach(c => {
+                            if (!c.homework) c.homework = { daily: {}, weekly: {}, count: {} };
+                        });
+                    } catch (e) { characterList = []; }
+                } else {
+                    characterList = [];
+                }
+
+                if (data.server_weekly) try { serverWeeklyData = JSON.parse(data.server_weekly); } catch (e) { serverWeeklyData = {}; }
+                if (data.server_daily) try { serverDailyData = JSON.parse(data.server_daily); } catch (e) { serverDailyData = {}; }
+                
+                if (data.active_homework_config) {
+                    try {
+                        const savedConfig = JSON.parse(data.active_homework_config);
+                        for (const key in masterHomeworkGroups) {
+                            if (savedConfig[key]) {
+                                activeHomeworkConfig[key] = savedConfig[key].filter(item => masterHomeworkGroups[key].items.includes(item));
+                            }
+                        }
+                    } catch (e) {}
+                }
+                if (data.last_daily_reset_time) lastDailyResetTime = data.last_daily_reset_time;
+                if (data.last_weekly_reset_time) lastWeeklyResetTime = data.last_weekly_reset_time;
+
+                checkAndExecuteResets();
+                renderUI();
+            }
+        });
+
+        function updateFirestore() {
+            isSaving = true;
+            const payload = {
+                character_data: JSON.stringify(characterList),
+                server_weekly: JSON.stringify(serverWeeklyData),
+                server_daily: JSON.stringify(serverDailyData),
+                active_homework_config: JSON.stringify(activeHomeworkConfig),
+                last_daily_reset_time: lastDailyResetTime,
+                last_weekly_reset_time: lastWeeklyResetTime
+            };
+            docRef.set(payload, { merge: true })
+                .then(() => isSaving = false)
+                .catch(error => { alert("저장 실패: " + error.message); isSaving = false; });
+            renderUI();
+        }
+
+        setInterval(() => {
+            checkAndExecuteResets();
+
+            const currentTime = Date.now();
+            let isChanged = false;
+
+            characterList.forEach(char => {
+                const silverTimeDiff = currentTime - char.lastSilverUpdatedTime;
+                if (silverTimeDiff >= silverInterval && char.silverCoins < 100) {
+                    const silverGain = Math.floor(silverTimeDiff / silverInterval);
+                    char.silverCoins = Math.min(100, char.silverCoins + silverGain);
+                    char.lastSilverUpdatedTime = char.lastSilverUpdatedTime + (silverGain * silverInterval);
+                    isChanged = true;
+                }
+
+                const tributeTimeDiff = currentTime - char.lastTributeUpdatedTime;
+                if (tributeTimeDiff >= tributeInterval && char.demonicTributes < 10) {
+                    const tributeGain = Math.floor(tributeTimeDiff / tributeInterval);
+                    char.demonicTributes = Math.min(10, char.demonicTributes + tributeGain);
+                    char.lastTributeUpdatedTime = char.lastTributeUpdatedTime + (tributeGain * tributeInterval);
+                    isChanged = true;
+                }
+            });
+
+            if (isChanged) updateFirestore();
+        }, 1000);
+
+        function setTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderUI();
+        }
+
+        function formatCompactTime(totalMs) {
+            if (totalMs <= 0) return "완충";
+            const totalSec = Math.floor(totalMs / 1000);
+            const totalMin = Math.floor(totalSec / 60);
+            const hours = Math.floor(totalMin / 60);
+            const mins = totalMin % 60;
+            const secs = totalSec % 60;
+            if (hours < 1) return `${String(totalMin).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        }
+
+        function getStatusColor(value, alertThreshold, warnThreshold, defaultColor) {
+            if (value >= alertThreshold) return 'var(--danger)';
+            if (value >= warnThreshold) return 'var(--warning)';
+            return defaultColor;
+        }
+
+        function adjustCoins(id, isSilver, amount) {
+            const idx = characterList.findIndex(c => c.id === id);
+            if (idx < 0) return;
+            const char = characterList[idx];
+            const currentTime = Date.now();
+
+            if (isSilver) {
+                const newCoins = Math.max(0, Math.min(100, char.silverCoins + amount));
+                const currentLeft = Math.max(0, silverInterval - (currentTime - char.lastSilverUpdatedTime));
+                char.silverCoins = newCoins;
+                char.lastSilverUpdatedTime = currentTime - (silverInterval - currentLeft);
+            } else {
+                const newCoins = Math.max(0, Math.min(10, char.demonicTributes + amount));
+                const currentLeft = Math.max(0, tributeInterval - (currentTime - char.lastTributeUpdatedTime));
+                char.demonicTributes = newCoins;
+                char.lastTributeUpdatedTime = currentTime - (tributeInterval - currentLeft);
+            }
+            updateFirestore();
+        }
+
+        function toggleHomework(id, type, key) {
+            const char = characterList.find(c => c.id === id);
+            if (!char) return;
+            if (!char.homework) char.homework = { daily: {}, weekly: {}, count: {} };
+            if (!char.homework[type]) char.homework[type] = {};
+            
+            char.homework[type][key] = !char.homework[type][key];
+            updateFirestore();
+        }
+
+        function toggleServerWeekly(serverName, key) {
+            if (!serverWeeklyData[serverName]) serverWeeklyData[serverName] = {};
+            serverWeeklyData[serverName][key] = !serverWeeklyData[serverName][key];
+            updateFirestore();
+        }
+
+        function toggleServerDaily(serverName, key) {
+            if (!serverDailyData[serverName]) serverDailyData[serverName] = {};
+            serverDailyData[serverName][key] = !serverDailyData[serverName][key];
+            updateFirestore();
+        }
+
+        function adjustHomeworkCount(id, key, delta) {
+            const char = characterList.find(c => c.id === id);
+            if (!char) return;
+            if (!char.homework) char.homework = { daily: {}, weekly: {}, count: {} };
+            if (!char.homework.count) char.homework.count = {};
+
+            const current = char.homework.count[key] || 0;
+            char.homework.count[key] = Math.max(0, current + delta);
+            updateFirestore();
+        }
+
+        function deleteCharacter(id, name) {
+            if(confirm(`'${name}' 캐릭터를 정말 삭제하시겠습니까?`)) {
+                characterList = characterList.filter(c => c.id !== id);
+                updateFirestore();
+            }
+        }
+
+        function openHomeworkSettingsModal() {
+            const container = document.getElementById("settings-checkbox-container");
+            container.innerHTML = "";
+
+            for (const [groupKey, group] of Object.entries(masterHomeworkGroups)) {
+                let sectionHTML = `<div class="settings-section-title">${group.label}</div>`;
+                const activeItems = activeHomeworkConfig[groupKey] || [];
+
+                group.items.forEach(item => {
+                    const isChecked = activeItems.includes(item) ? "checked" : "";
+                    sectionHTML += `
+                        <label class="settings-checkbox-item">
+                            <input type="checkbox" name="hw_setting_${groupKey}" value="${item}" ${isChecked}>
+                            <span>${item}</span>
+                        </label>
+                    `;
+                });
+                container.innerHTML += sectionHTML;
+            }
+
+            document.getElementById("homework-settings-modal").style.display = "flex";
+        }
+
+        function closeHomeworkSettingsModal() {
+            document.getElementById("homework-settings-modal").style.display = "none";
+        }
+
+        function saveHomeworkSettings() {
+            for (const groupKey of Object.keys(masterHomeworkGroups)) {
+                const checkboxes = document.querySelectorAll(`input[name="hw_setting_${groupKey}"]:checked`);
+                activeHomeworkConfig[groupKey] = Array.from(checkboxes).map(cb => cb.value);
+            }
+            updateFirestore();
+            closeHomeworkSettingsModal();
+        }
+
+        function renderUI() {
+            const container = document.getElementById("app-content");
+            container.innerHTML = "";
+            const currentTime = Date.now();
+
+            if (characterList.length === 0 && currentTab !== 'HOMEWORK') {
+                container.innerHTML = `<div style="text-align:center; color: var(--text-secondary); margin-top: 60px; font-size: 14px;">우측 하단 + 버튼으로 캐릭터를 추가하세요</div>`;
+                return;
+            }
+
+            if (currentTab === 'HOMEWORK') {
+                renderHomeworkTable(container);
+                return;
+            }
+
+            let displayList = [...characterList];
+            if (currentTab === 'SILVER') {
+                displayList.sort((a, b) => b.silverCoins - a.silverCoins); 
+            } else if (currentTab === 'TRIBUTE') {
+                displayList.sort((a, b) => b.demonicTributes - a.demonicTributes);
+            }
+
+            let cardContainerHTML = `<div class="card-container">`;
+            displayList.forEach(char => {
+                const currentSilverLeft = Math.max(0, silverInterval - (currentTime - char.lastSilverUpdatedTime));
+                const silverNeeded = Math.max(0, 100 - char.silverCoins);
+                const totalSilverFullMs = silverNeeded <= 0 ? 0 : currentSilverLeft + ((silverNeeded - 1) * silverInterval);
+                const silverColor = getStatusColor(char.silverCoins, 100, 80, 'var(--accent-gold)');
+
+                const currentTributeLeft = Math.max(0, tributeInterval - (currentTime - char.lastTributeUpdatedTime));
+                const tributeNeeded = Math.max(0, 10 - char.demonicTributes);
+                const totalTributeFullMs = tributeNeeded <= 0 ? 0 : currentTributeLeft + ((tributeNeeded - 1) * tributeInterval);
+                const tributeColor = getStatusColor(char.demonicTributes, 10, 9, 'var(--accent-teal)');
+
+                const showSilver = (currentTab === 'SERVER' || currentTab === 'SILVER');
+                const showTribute = (currentTab === 'SERVER' || currentTab === 'TRIBUTE');
+
+                cardContainerHTML += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="server-tag">${char.serverName}</span>
+                            <span class="char-name" onclick="openEditModal(${char.id})">${char.name}</span>
+                            <button class="delete-btn" onclick="deleteCharacter(${char.id}, '${char.name}')">🗑️ 삭제</button>
+                        </div>
+                        <div class="resource-row">
+                `;
+
+                if (showSilver) {
+                    cardContainerHTML += `
+                        <div class="resource-box">
+                            <div class="resource-header">
+                                <span>은동전</span>
+                                <span class="resource-value" style="color: ${char.silverCoins >= 80 ? silverColor : 'var(--text-primary)'}">${char.silverCoins}/100</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-fill" style="width: ${Math.min(100, char.silverCoins)}%; background-color: ${silverColor};"></div>
+                            </div>
+                            <div class="controls">
+                                <div class="controls-group">
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, true, -10)">--</button>
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, true, -1)">-</button>
+                                </div>
+                                <span class="time-label">${formatCompactTime(totalSilverFullMs)}</span>
+                                <div class="controls-group">
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, true, 1)">+</button>
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, true, 10)">++</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (showTribute) {
+                    cardContainerHTML += `
+                        <div class="resource-box">
+                            <div class="resource-header">
+                                <span>마족 공물</span>
+                                <span class="resource-value" style="color: ${char.demonicTributes >= 9 ? tributeColor : 'var(--text-primary)'}">${char.demonicTributes}/10</span>
+                            </div>
+                            <div class="progress-bg">
+                                <div class="progress-fill" style="width: ${(char.demonicTributes / 10) * 100}%; background-color: ${tributeColor};"></div>
+                            </div>
+                            <div class="controls">
+                                <div class="controls-group">
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, false, -1)">-</button>
+                                </div>
+                                <span class="time-label">${formatCompactTime(totalTributeFullMs)}</span>
+                                <div class="controls-group">
+                                    <button class="mini-btn" onclick="adjustCoins(${char.id}, false, 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                cardContainerHTML += `</div></div>`;
+            });
+            cardContainerHTML += `</div>`;
+            container.innerHTML = cardContainerHTML;
+        }
+
+        function renderHomeworkTable(container) {
+            const activeServers = [...new Set(characterList.map(c => c.serverName))];
+            let html = `<div class="homework-table-wrapper">
+                <div class="homework-top-bar">
+                    <button class="manage-settings-btn" onclick="openHomeworkSettingsModal()">⚙️ 숙제 목록 관리</button>
+                </div>`;
+
+            for (const [groupKey, group] of Object.entries(masterHomeworkGroups)) {
+                const activeItems = activeHomeworkConfig[groupKey] || [];
+                if (activeItems.length === 0) continue;
+
+                html += `<div class="homework-section-title">${group.label}</div>`;
+
+                if (group.type === 'serverWeekly' || group.type === 'serverDaily') {
+                    if (activeServers.length === 0) {
+                        html += `<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 24px;">등록된 캐릭터가 있는 서버가 없습니다.</p>`;
+                        continue;
+                    }
+                    html += `<table class="homework-table"><thead><tr><th>항목</th>`;
+                    activeServers.forEach(srv => html += `<th>${srv}</th>`);
+                    html += `</tr></thead><tbody>`;
+
+                    activeItems.forEach(item => {
+                        html += `<tr><td>${item}</td>`;
+                        activeServers.forEach(srv => {
+                            let checked = '';
+                            if (group.type === 'serverWeekly') checked = serverWeeklyData[srv]?.[item] ? 'checked' : '';
+                            if (group.type === 'serverDaily') checked = serverDailyData[srv]?.[item] ? 'checked' : '';
+                            const toggleFn = group.type === 'serverWeekly' ? `toggleServerWeekly('${srv}', '${item}')` : `toggleServerDaily('${srv}', '${item}')`;
+                            html += `<td><input type="checkbox" ${checked} onchange="${toggleFn}"></td>`;
+                        });
+                        html += `</tr>`;
+                    });
+                    html += `</tbody></table>`;
+                } else {
+                    if (characterList.length === 0) {
+                        html += `<p style="font-size:13px; color:var(--text-secondary); margin-bottom: 24px;">등록된 캐릭터가 없습니다.</p>`;
+                        continue;
+                    }
+                    html += `<table class="homework-table"><thead><tr><th>항목</th>`;
+                    characterList.forEach(c => html += `<th>${c.name}</th>`);
+                    html += `</tr></thead><tbody>`;
+                    
+                    activeItems.forEach(item => {
+                        html += `<tr><td>${item}</td>`;
+                        characterList.forEach(c => {
+                            if (group.type === 'count') {
+                                const count = c.homework?.count?.[item] || 0;
+                                html += `<td>
+                                    <div class="homework-count-control">
+                                        <button onclick="adjustHomeworkCount(${c.id}, '${item}', -1)">-</button>
+                                        <span>${count}</span>
+                                        <button onclick="adjustHomeworkCount(${c.id}, '${item}', 1)">+</button>
+                                    </div>
+                                </td>`;
+                            } else {
+                                const checked = c.homework?.[group.type]?.[item] ? 'checked' : '';
+                                html += `<td><input type="checkbox" ${checked} onchange="toggleHomework(${c.id}, '${group.type}', '${item}')"></td>`;
+                            }
+                        });
+                        html += `</tr>`;
+                    });
+                    html += `</tbody></table>`;
+                }
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        const modal = document.getElementById("modal");
+        const idInput = document.getElementById("char-id");
+        const nameInput = document.getElementById("char-name");
+        const serverInput = document.getElementById("char-server");
+        const modalTitle = document.getElementById("modal-title");
+
+        function openAddModal() {
+            modal.style.display = "flex";
+            modalTitle.textContent = "새 캐릭터 생성";
+            idInput.value = "";
+            nameInput.value = "새 캐릭터";
+            serverInput.value = "라사";
+            serverInput.disabled = false;
+        }
+
+        function openEditModal(id) {
+            const char = characterList.find(c => c.id === id);
+            if (!char) return;
+            modal.style.display = "flex";
+            modalTitle.textContent = "캐릭터 이름 변경";
+            idInput.value = char.id;
+            nameInput.value = char.name;
+            serverInput.value = char.serverName;
+            serverInput.disabled = true; 
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        function saveCharacter() {
+            const id = parseInt(idInput.value);
+            const name = nameInput.value.trim();
+            const server = serverInput.value;
+            const currentTime = Date.now();
+
+            if (!name) { alert("이름을 입력하세요."); return; }
+
+            if (id) {
+                const idx = characterList.findIndex(c => c.id === id);
+                if (idx !== -1) characterList[idx].name = name;
+            } else {
+                const nextId = characterList.length > 0 ? Math.max(...characterList.map(c => c.id)) + 1 : 1;
+                characterList.push({
+                    id: nextId,
+                    name: name,
+                    serverName: server,
+                    silverCoins: 0,
+                    demonicTributes: 0,
+                    lastSilverUpdatedTime: currentTime,
+                    lastTributeUpdatedTime: currentTime,
+                    homework: { daily: {}, weekly: {}, count: {} }
+                });
+            }
+
+            updateFirestore();
+            closeModal();
+        }
+    </script>
+</body>
+</html>
