@@ -211,9 +211,9 @@
         let isSaving = false;
 
         let dragSrcId = null;
+        let suppressCardDrag = false;
         function handleDragStart(e, id) {
-            // 은동전/공물 영역(밀어서 조절하는 곳)에서 시작된 드래그는 카드 이동으로 취급하지 않는다
-            if (e.target.closest('.resource-box')) {
+            if (suppressCardDrag) {
                 e.preventDefault();
                 return;
             }
@@ -245,7 +245,7 @@
             if (!el) return;
             let startX = null, accum = 0, dragging = false;
 
-            const onStart = (clientX) => { startX = clientX; accum = 0; dragging = true; };
+            const onStart = (clientX) => { startX = clientX; accum = 0; dragging = true; suppressCardDrag = true; };
             const onMove = (clientX) => {
                 if (!dragging || startX === null) return;
                 const dx = clientX - startX;
@@ -254,7 +254,7 @@
                 while (accum >= SWIPE_STEP_PX) { adjustCoins(id, isSilver, 1); accum -= SWIPE_STEP_PX; }
                 while (accum <= -SWIPE_STEP_PX) { adjustCoins(id, isSilver, -1); accum += SWIPE_STEP_PX; }
             };
-            const onEnd = () => { dragging = false; startX = null; accum = 0; };
+            const onEnd = () => { dragging = false; startX = null; accum = 0; suppressCardDrag = false; };
 
             // 카드 드래그와 충돌하지 않도록 이벤트 전파 및 기본 동작 차단
             el.addEventListener('mousedown', (e) => {
