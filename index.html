@@ -246,9 +246,23 @@
                 while (accum <= -SWIPE_STEP_PX) { adjustCoins(id, isSilver, -1); accum += SWIPE_STEP_PX; }
             };
             const onEnd = () => { dragging = false; startX = null; accum = 0; };
-            el.addEventListener('mousedown', (e) => { onStart(e.clientX); e.stopPropagation(); });
+            
+            // 마우스 누를 때 카드 드래그 동작 차단
+            el.addEventListener('mousedown', (e) => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                onStart(e.clientX); 
+            });
+            
+            // HTML5 기본 드래그 이벤트 차단
+            el.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
             window.addEventListener('mousemove', (e) => { if (dragging) onMove(e.clientX); });
             window.addEventListener('mouseup', onEnd);
+            
             el.addEventListener('touchstart', (e) => { onStart(e.touches[0].clientX); e.stopPropagation(); }, { passive: true });
             el.addEventListener('touchmove', (e) => { onMove(e.touches[0].clientX); }, { passive: true });
             el.addEventListener('touchend', onEnd);
