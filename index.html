@@ -236,6 +236,7 @@
         function attachSwipeAdjust(el, id, isSilver) {
             if (!el) return;
             let startX = null, accum = 0, dragging = false;
+            
             const onStart = (clientX) => { startX = clientX; accum = 0; dragging = true; };
             const onMove = (clientX) => {
                 if (!dragging || startX === null) return;
@@ -247,14 +248,12 @@
             };
             const onEnd = () => { dragging = false; startX = null; accum = 0; };
             
-            // 마우스 누를 때 카드 드래그 동작 차단
+            // 카드 드래그와 충돌하지 않도록 이벤트 전파 및 기본 동작 차단
             el.addEventListener('mousedown', (e) => { 
-                e.preventDefault(); 
-                e.stopPropagation(); 
                 onStart(e.clientX); 
+                e.stopPropagation(); 
             });
             
-            // HTML5 기본 드래그 이벤트 차단
             el.addEventListener('dragstart', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
