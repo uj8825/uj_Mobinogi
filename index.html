@@ -256,8 +256,8 @@
             };
             const onEnd = () => { dragging = false; startX = null; accum = 0; suppressCardDrag = false; };
 
-            // 카드 드래그와 충돌하지 않도록 이벤트 전파 및 기본 동작 차단
             el.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // 브라우저 기본 드래그 앤 드롭 동작 시작 차단
                 onStart(e.clientX);
                 e.stopPropagation();
             });
