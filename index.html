@@ -236,7 +236,7 @@
         function attachSwipeAdjust(el, id, isSilver) {
             if (!el) return;
             let startX = null, accum = 0, dragging = false;
-            
+
             const onStart = (clientX) => { startX = clientX; accum = 0; dragging = true; };
             const onMove = (clientX) => {
                 if (!dragging || startX === null) return;
@@ -247,13 +247,13 @@
                 while (accum <= -SWIPE_STEP_PX) { adjustCoins(id, isSilver, -1); accum += SWIPE_STEP_PX; }
             };
             const onEnd = () => { dragging = false; startX = null; accum = 0; };
-            
+
             // 카드 드래그와 충돌하지 않도록 이벤트 전파 및 기본 동작 차단
-            el.addEventListener('mousedown', (e) => { 
-                onStart(e.clientX); 
-                e.stopPropagation(); 
+            el.addEventListener('mousedown', (e) => {
+                onStart(e.clientX);
+                e.stopPropagation();
             });
-            
+
             el.addEventListener('dragstart', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -261,7 +261,7 @@
 
             window.addEventListener('mousemove', (e) => { if (dragging) onMove(e.clientX); });
             window.addEventListener('mouseup', onEnd);
-            
+
             el.addEventListener('touchstart', (e) => { onStart(e.touches[0].clientX); e.stopPropagation(); }, { passive: true });
             el.addEventListener('touchmove', (e) => { onMove(e.touches[0].clientX); }, { passive: true });
             el.addEventListener('touchend', onEnd);
@@ -332,6 +332,12 @@
                 if (data.last_weekly_reset_time) lastWeeklyResetTime = data.last_weekly_reset_time;
 
                 checkAndExecuteResets();
+                renderUI();
+            } else {
+                // Firestore 문서가 삭제된 경우 화면도 같이 비운다
+                characterList = [];
+                serverWeeklyData = {};
+                serverDailyData = {};
                 renderUI();
             }
         });
