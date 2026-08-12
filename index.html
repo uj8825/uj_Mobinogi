@@ -561,6 +561,8 @@
                     const specIcon = char.specialization ? '<span class="memo-icon">\u2694\ufe0f</span>' : "";
                     const cycleIcon = char.dealCycle ? '<span class="memo-icon">\ud83d\udd04</span>' : "";
                     const memoPreview = char.memo ? '<div class="memo-preview">' + escapeHtml(char.memo) + '</div>' : "";
+                    const specPreview = char.specialization ? '<div class="memo-preview">\u2694\ufe0f ' + escapeHtml(char.specialization) + '</div>' : "";
+                    const cyclePreview = char.dealCycle ? '<div class="memo-preview">\ud83d\udd04 ' + escapeHtml(char.dealCycle) + '</div>' : "";
                     html += '<div class="card draggable-card" draggable="true" ' +
                         'ondragstart="handleDragStart(event, ' + char.id + ')" ' +
                         'ondragover="handleDragOver(event, ' + char.id + ')" ' +
@@ -574,6 +576,8 @@
                         '<span class="drag-handle" title="드래그해서 순서 변경">\u2261</span>' +
                         '<button class="delete-btn" onclick="event.stopPropagation();deleteCharacter(' + char.id + ', \'' + escapeHtml(char.name) + '\')">\ud83d\uddd1\ufe0f</button>' +
                         '</div>' +
+                        specPreview +
+                        cyclePreview +
                         memoPreview +
                         '<div class="resource-row">' +
                         resourceBoxHtml(char, true, expanded, true) +
