@@ -134,6 +134,7 @@
             <h3 id="modal-title">새 캐릭터 생성</h3>
             <input type="hidden" id="char-id">
             <label style="font-size: 13px; color: var(--text-secondary);">캐릭터 명칭</label>
+            <div class="modal-body-scroll">
             <input type="text" id="char-name" placeholder="이름 입력">
             <label style="font-size: 13px; color: var(--text-secondary);">서버 선택</label>
             <select id="char-server">
@@ -146,8 +147,13 @@
                 <option value="알리사">알리사</option>
                 <option value="몰리">몰리</option>
             </select>
+            <label id="spec-label" style="font-size: 13px; color: var(--text-secondary); display:none;">특화 (개조)</label>
+            <textarea id="char-spec" placeholder="예: 개조 단계, 특화 방향 등" style="display:none; min-height:40px;"></textarea>
+            <label id="dealcycle-label" style="font-size: 13px; color: var(--text-secondary); display:none;">딜사이클</label>
+            <textarea id="char-dealcycle" placeholder="예: 스킬 순서, 콤보 등" style="display:none;"></textarea>
             <label id="memo-label" style="font-size: 13px; color: var(--text-secondary); display:none;">메모</label>
-            <textarea id="char-memo" placeholder="예: 장비/스킬 메모, 할 일 등" style="display:none;"></textarea>
+            <textarea id="char-memo" placeholder="예: 기타 할 일 등" style="display:none;"></textarea>
+            </div>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">취소</button>
                 <button class="btn-save" onclick="saveCharacter()">확인</button>
@@ -322,6 +328,8 @@
                         characterList.forEach(c => {
                             if (!c.homework) c.homework = { daily: {}, weekly: {}, count: {} };
                             if (c.memo === undefined) c.memo = "";
+                            if (c.specialization === undefined) c.specialization = "";
+                            if (c.dealCycle === undefined) c.dealCycle = "";
                         });
                     } catch (e) { characterList = []; }
                 } else characterList = [];
@@ -550,6 +558,8 @@
                 characterList.forEach(char => {
                     const expanded = expandedIds.has(char.id);
                     const memoIcon = char.memo ? '<span class="memo-icon">\ud83d\udcdd</span>' : "";
+                    const specIcon = char.specialization ? '<span class="memo-icon">\u2694\ufe0f</span>' : "";
+                    const cycleIcon = char.dealCycle ? '<span class="memo-icon">\ud83d\udd04</span>' : "";
                     const memoPreview = char.memo ? '<div class="memo-preview">' + escapeHtml(char.memo) + '</div>' : "";
                     html += '<div class="card draggable-card" draggable="true" ' +
                         'ondragstart="handleDragStart(event, ' + char.id + ')" ' +
@@ -559,7 +569,7 @@
                         'onclick="toggleExpand(' + char.id + ')">' +
                         '<div class="card-header">' +
                         '<span class="server-tag">' + escapeHtml(char.serverName) + '</span>' +
-                        '<span class="char-name" onclick="event.stopPropagation();openEditModal(' + char.id + ')">' + escapeHtml(char.name) + '</span>' + memoIcon +
+                        '<span class="char-name" onclick="event.stopPropagation();openEditModal(' + char.id + ')">' + escapeHtml(char.name) + '</span>' + specIcon + cycleIcon + memoIcon +
                         '<span class="header-spacer"></span>' +
                         '<span class="drag-handle" title="드래그해서 순서 변경">\u2261</span>' +
                         '<button class="delete-btn" onclick="event.stopPropagation();deleteCharacter(' + char.id + ', \'' + escapeHtml(char.name) + '\')">\ud83d\uddd1\ufe0f</button>' +
@@ -674,6 +684,10 @@
         const serverInput = document.getElementById("char-server");
         const memoInput = document.getElementById("char-memo");
         const memoLabel = document.getElementById("memo-label");
+        const specInput = document.getElementById("char-spec");
+        const specLabel = document.getElementById("spec-label");
+        const dealCycleInput = document.getElementById("char-dealcycle");
+        const dealCycleLabel = document.getElementById("dealcycle-label");
         const modalTitle = document.getElementById("modal-title");
 
         function openAddModal() {
@@ -686,6 +700,12 @@
             memoInput.style.display = "none";
             memoLabel.style.display = "none";
             memoInput.value = "";
+            specInput.style.display = "none";
+            specLabel.style.display = "none";
+            specInput.value = "";
+            dealCycleInput.style.display = "none";
+            dealCycleLabel.style.display = "none";
+            dealCycleInput.value = "";
         }
         function openEditModal(id) {
             const char = characterList.find(c => c.id === id);
@@ -699,6 +719,12 @@
             memoInput.style.display = "block";
             memoLabel.style.display = "block";
             memoInput.value = char.memo || "";
+            specInput.style.display = "block";
+            specLabel.style.display = "block";
+            specInput.value = char.specialization || "";
+            dealCycleInput.style.display = "block";
+            dealCycleLabel.style.display = "block";
+            dealCycleInput.value = char.dealCycle || "";
         }
         function closeModal() { modal.style.display = "none"; }
 
@@ -714,6 +740,8 @@
                 if (idx !== -1) {
                     characterList[idx].name = name;
                     characterList[idx].memo = memoInput.value;
+                    characterList[idx].specialization = specInput.value;
+                    characterList[idx].dealCycle = dealCycleInput.value;
                 }
             } else {
                 const nextId = characterList.length > 0 ? Math.max.apply(null, characterList.map(c => c.id)) + 1 : 1;
@@ -721,7 +749,7 @@
                     id: nextId, name: name, serverName: server,
                     silverCoins: 0, demonicTributes: 0,
                     lastSilverUpdatedTime: currentTime, lastTributeUpdatedTime: currentTime,
-                    memo: "", homework: { daily: {}, weekly: {}, count: {} }
+                    memo: "", specialization: "", dealCycle: "", homework: { daily: {}, weekly: {}, count: {} }
                 });
             }
             updateFirestore();
