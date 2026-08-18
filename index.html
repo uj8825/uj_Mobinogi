@@ -318,10 +318,6 @@
         }
 
         docRef.onSnapshot((docSnap) => {
-            // 이 브라우저가 방금 쓴, 아직 서버 확정 전인 로컬 반영본은 다시 처리할 필요 없음.
-            // (isSaving 같은 boolean 플래그는 저장이 겹치면 서로 꼬여서 방금 만든 데이터가
-            // 사라지는 문제가 있어, Firestore가 제공하는 정확한 메타데이터를 사용한다.)
-            if (docSnap.metadata.hasPendingWrites) return;
             if (docSnap.exists) {
                 const data = docSnap.data();
                 if (data.character_data) {
